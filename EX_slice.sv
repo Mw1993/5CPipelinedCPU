@@ -1,21 +1,26 @@
 // Maggie White and Taylor Shoenborn
-module EX_slice(clk, rst, WB_in, M_in, EX, r0data, r1data, rt, rd, flags, WB, M);
+module EX_slice(clk, rst, WB_in, M_in, EX, r0data, r1data, rt, rd, imm, offset,
+                PC_inc, addr, data, result, flags, WB, M);
 
 input clk, rst;
 input WB_in;
-input [2:0] M_in;
-input [8:0] EX;
+input [1:0] M_in;
+input [7:0] EX;
 input [15:0] r0data, r1data;
 input [3:0] rt, rd;
 input [15:0] imm, offset;
-output [15:0] result;
+input [15:0] PC_inc;
+output [15:0] addr, data, result;
 output [2:0] flags;//zero, neg, overflow;
 output WB;
-output [2:0] M;
+output [1:0] M;
 
 wire [2:0] ALUOp;
 wire [3:0] shamt;
 wire [1:0] ALUSrc;
+
+wire zr, neg, ov;
+wire [15:0] reg0, reg1;
 
 reg [15:0] a, b;
 
@@ -24,7 +29,7 @@ assign ALUSrc = EX[5:4];
 assign SPAddr = EX[6];
 assign PCToMem = EX[7];
 
-assign W = W_in;
+assign WB = WB_in;
 assign M = M_in;
 assign flags = {zr, neg, ov};
 
@@ -32,9 +37,10 @@ assign a = reg0;
 assign b = (ALUSrc == 2'b00) ? reg1 :
            (ALUSrc == 2'b01) ? imm  :
            (ALUSrc == 2'b10) ? offset :
-           (ALUSrc == 2'b11) ? 16'h0001;
+            16'h0001;
 
-ALU(.a(reg0), .b(reg1), .operation(ALUOp), .shamt(imm[3:0]), zero, neg, overflow);
+ALU alu(.a(reg0), .b(reg1), .operation(ALUOp), .shamt(imm[3:0]), .result(result),
+    .zr(zr), .neg(neg), .ov(ov));
 
 // Insert forwarding module here
 
@@ -63,7 +69,6 @@ always @(*) begin
     LLB: result <= {a[15:8], b[7:0]};
     NAND: result <= ~(a & b);
     XOR: result <= a ^ b;
-    NOR: result <=  ~(a | b);
     SLL: result <= a << shamt;
     SRL: result <= a >> shamt;
     SRA: result <= {$signed(a) >> shamt};
