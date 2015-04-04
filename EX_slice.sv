@@ -1,16 +1,17 @@
 // Maggie White and Taylor Shoenborn
-module EX_slice(WB_in, M_in, EX, reg0, reg1, rt, rd, zero, neg, overflow, clk, rst, WB, M);
+module EX_slice(clk, rst, WB_in, M_in, EX, r0data, r1data, rt, rd, flags, WB, M);
 
 input clk, rst;
-input W;
-input M;
+input WB_in;
+input [2:0] M_in;
 input [8:0] EX;
-input [15:0] reg0, reg1;
+input [15:0] r0data, r1data;
 input [3:0] rt, rd;
 input [15:0] imm, offset;
 output [15:0] result;
 output [2:0] flags;//zero, neg, overflow;
-output WB, M;
+output WB;
+output [2:0] M;
 
 wire [2:0] ALUOp;
 wire [3:0] shamt;
@@ -18,9 +19,14 @@ wire [1:0] ALUSrc;
 
 reg [15:0] a, b;
 
-assign ALUOp = EX[2:0];
-assign shamt = EX[6:3];
-assign ALUSrc = EX[8:7];
+assign ALUOp = EX[3:0];
+assign ALUSrc = EX[5:4];
+assign SPAddr = EX[6];
+assign PCToMem = EX[7];
+
+assign W = W_in;
+assign M = M_in;
+assign flags = {zr, neg, ov};
 
 assign a = reg0;
 assign b = (ALUSrc == 2'b00) ? reg1 :
@@ -28,19 +34,19 @@ assign b = (ALUSrc == 2'b00) ? reg1 :
            (ALUSrc == 2'b10) ? offset :
            (ALUSrc == 2'b11) ? 16'h0001;
 
-ALU(.a(reg0), .b(reg1), .operation(ALUOp), .shamt(shamt), zero, neg, overflow);
+ALU(.a(reg0), .b(reg1), .operation(ALUOp), .shamt(imm[3:0]), zero, neg, overflow);
 
 // Insert forwarding module here
 
 endmodule
 
-module ALU(a, b, operation, shamt, result, zero, neg, overflow);
+module ALU(a, b, operation, shamt, result, zr, neg, ov);
 
 input [15:0] a, b;
 input [3:0] operation;
 input [3:0] shamt;
 output reg [15:0] result;
-output zero, neg, overflow;
+output zr, neg, ov;
 
 wire [7:0] s0, s1, s2;
 wire asign, bsign, shift;
@@ -65,14 +71,14 @@ always @(*) begin
   endcase
 end
 
-// 0x8000 doesn't have a positive complement
+// 0x8000 doesn't have a positive complement - does this really matter?
 assign bsign = (operation == SUB) ? ~b[15] : b[15];
 assign asign = a[15];
 
 assign shift = (operation == SLL || operation == SRL || operation == SRA);
 
-assign overflow = shift ? 1'b0 : (bsign && asign && !result[15]) || (!bsign && !asign && result[15]);
-assign zero = shift ? 1'b0 : ~|result;
-assign negative = shift ? 1'b0 : result[15];
+assign ov = shift ? 1'b0 : (bsign && asign && !result[15]) || (!bsign && !asign && result[15]);
+assign zr = shift ? 1'b0 : ~|result;
+assign neg = shift ? 1'b0 : result[15];
 
 endmodule
