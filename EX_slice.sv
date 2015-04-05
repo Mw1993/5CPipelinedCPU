@@ -1,19 +1,22 @@
 // Maggie White and Taylor Shoenborn
 module EX_slice(clk, rst, WB_in, M_in, EX, r0data, r1data, rt, rd, imm, offset,
-                PC_inc, addr, data, result, flags, WB, M);
+                addr, data, result, flags, PCcall_in, PCcall, PCbranch, Call, WB, M);
 
 input clk, rst;
 input WB_in;
 input [1:0] M_in;
-input [7:0] EX;
+input [8:0] EX;
+input [15:0] PC_inc;
 input [15:0] r0data, r1data;
 input [3:0] rt, rd;
 input [15:0] imm, offset;
-input [15:0] PC_inc;
+input [15:0] PCcall_in;
 output [15:0] addr, data, result;
 output [2:0] flags;//zero, neg, overflow;
-output WB;
-output [1:0] M;
+output [15:0] PCcall, PCbranch;
+output Call;
+output [1:0] WB;
+output [2:0] M;
 
 wire [2:0] ALUOp;
 wire [3:0] shamt;
@@ -28,6 +31,10 @@ assign ALUOp = EX[3:0];
 assign ALUSrc = EX[5:4];
 assign SPAddr = EX[6];
 assign PCToMem = EX[7];
+assign Call = EX[8];
+
+assign PCcall = PCcall_in;
+assign PCbranch = PC_inc + offset + 1;
 
 assign WB = WB_in;
 assign M = M_in;
