@@ -21,6 +21,7 @@ output [2:0] M;
 wire [3:0] ALUOp;
 wire [3:0] shamt;
 wire [1:0] ALUSrc;
+wire CallRet, PCToMem, SPAddr;
 
 wire zr, neg, ov;
 
@@ -28,8 +29,8 @@ reg [15:0] a, b;
 
 assign ALUOp = EX[3:0];
 assign ALUSrc = EX[5:4];
-assign SPAddr = EX[6];
-assign PCToMem = EX[7];
+assign PCToMem = EX[6];
+assign SPAddr = EX[7];
 
 assign PCbranch = PC_inc + offset + 1;
 

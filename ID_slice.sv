@@ -18,16 +18,17 @@ output [1:0] WB;
 
 reg [15:0] instr, write_data;
 wire [3:0] opcode;
-wire [3:0] r0_addr, r1_addr;
+wire [3:0] r0_addr, r1_addr, dst_addr;
 wire [11:0] addr;
 wire re0, re1, hlt;
 
 wire RegWrite, MemRead, MemToReg, LoadStore, 
-     MemWrite, ReadRd, PCToMem, SPToMem, SPAddr,
-     Branch, Ret, LoadByte;
+     MemWrite, ReadRd, PCToMem, SPToMem, CallRet,
+     Branch, Ret, LoadByte, SPAddr;
 wire [1:0] ALUSrc;
 
-assign PCcall = {PC_inc[15:12], addr};
+assign PCcall = {PC_inc_in[15:12], addr};
+assign PC_inc = PC_inc_in;
 
 // Parts of instruction
 assign opcode = instr[15:12];
@@ -41,36 +42,40 @@ assign addr   = instr[11:0]; // for call
 
 wire [3:0] ALUOp;
 
-assign r0_addr = LoadByte ? rd : (LoadStore ? 4'hE : rs);
+assign r0_addr = LoadByte ? rd :
+                 LoadStore ? 4'hE :
+                 CallRet ? 4'hF :
+                 rs;
 assign r1_addr = ReadRd    ? rd   : rt;
+assign dst_addr = CallRet  ? 4'hF : rd;
 assign re0 = 1;
 assign re1 = 1;
 assign hlt = 0;
 rf regFile(.clk(clk),.p0_addr(r0_addr),.p1_addr(r1_addr),.p0(r0data),.p1(r1data),.re0(re0),.re1(re1),
-           .dst_addr(rd),.dst(write_data),.we(RegWrite),.hlt(hlt));
+           .dst_addr(dst_addr),.dst(write_data),.we(RegWrite),.hlt(hlt));
 
 // Control logic
 control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .MemRead(MemRead),
              .MemToReg(MemToReg), .LoadStore(LoadStore), .MemWrite(MemWrite),
              .ALUOp(ALUOp), .ReadRd(ReadRd), .PCToMem(PCToMem), .SPToMem(SPToMem),
-             .Call(Call), .Branch(Branch), .Ret(Ret), .SPAddr(SPAddr), .LoadByte(LoadByte),
-             .Reg0Read(Reg0Read), .Reg1Read(Reg1Read), .Halt());
+             .Call(Call), .Branch(Branch), .Ret(Ret), .CallRet(CallRet), .LoadByte(LoadByte),
+             .SPAddr(SPAddr), .Reg0Read(Reg0Read), .Reg1Read(Reg1Read), .Halt());
 
-assign EX = {PCToMem, SPAddr, ALUSrc, ALUOp};
+assign EX = {SPAddr, PCToMem, ALUSrc, ALUOp};
 assign M = {Branch, MemWrite, MemRead};
 assign WB = {Ret, MemToReg};
 
 endmodule
 
 module control(rst, opcode, RegWrite, ALUSrc, MemRead, MemToReg, LoadStore,
-               MemWrite, ALUOp, ReadRd, PCToMem, SPToMem, SPAddr,
-               Call, Branch, Ret, LoadByte, Reg0Read, Reg1Read, Halt);
+               MemWrite, ALUOp, ReadRd, PCToMem, SPToMem, CallRet,
+               Call, Branch, Ret, LoadByte, SPAddr, Reg0Read, Reg1Read, Halt);
 
 input rst;
 input  [3:0] opcode;
 output reg [1:0] ALUSrc;
 output reg RegWrite, MemRead, MemToReg, LoadStore, MemWrite, ReadRd, PCToMem,
-       SPToMem, SPAddr, Call, Branch, Ret, LoadByte;
+       SPToMem, CallRet, Call, Branch, Ret, LoadByte, SPAddr;
 output reg Reg0Read, Reg1Read, Halt;
 output [3:0] ALUOp;
 
@@ -94,12 +99,13 @@ always @(*) begin
   Reg0Read = 1;
   Reg1Read = 1;
   PCToMem = 0;
-  SPAddr = 0;
+  CallRet = 0;
   Halt = 0;
   Call = 0;
   Branch = 0;
   Ret = 0;
   LoadByte = 0;
+  SPAddr = 0;
   case(opcod)
     ADD, SUB, NAND, XOR: begin
       RegWrite = 1;
@@ -146,15 +152,16 @@ always @(*) begin
       ALUOp = 4'h1; // SUB
       Reg1Read = 0;
       PCToMem = 1;
-      SPAddr = 1;
+      CallRet = 1;
       Call = 1;
+      SPAddr = 1;
     end RET: begin
       RegWrite = 1;
       ALUSrc = 2'b11;
       MemRead = 1;
       ALUOp = 4'h0; // ADD
       Reg1Read = 0;
-      SPAddr = 1;
+      CallRet = 1;
       Ret = 1;
     end FLUSH: begin
       Reg0Read = 0;

@@ -10,3 +10,4 @@ reg_16bit.sv
 *.mtf
 *.mpf
 *.zip
+defines.sv

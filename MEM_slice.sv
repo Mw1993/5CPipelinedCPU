@@ -27,7 +27,8 @@ assign PCret = rdata;
 
 typedef enum bit [2:0] {EQ = 3'h0, LT = 3'h1, GT = 3'h2, OV = 3'h3, NE = 3'h4, GE = 3'h5,
                 LE = 3'h6, UNCOND = 3'h7} cond;
-cond ebcond = cond'(bcond);
+cond ebcond;
+assign ebcond = cond'(bcond);
 always @(*) begin
   if(!branch)
     Branch = 0;
