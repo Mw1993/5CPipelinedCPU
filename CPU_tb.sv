@@ -12,7 +12,7 @@ always begin
   rst = 1;
   repeat(2) @(posedge clk);
   rst = 0;
-  repeat(10) @(posedge clk);
+  repeat(20) @(posedge clk);
 end
 
 endmodule

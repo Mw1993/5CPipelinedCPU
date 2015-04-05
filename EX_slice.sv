@@ -23,7 +23,6 @@ wire [3:0] shamt;
 wire [1:0] ALUSrc;
 
 wire zr, neg, ov;
-wire [15:0] reg0, reg1;
 
 reg [15:0] a, b;
 
@@ -39,8 +38,8 @@ assign WB = WB_in;
 assign M = M_in;
 assign flags = {zr, neg, ov};
 
-assign a = reg0;
-assign b = (ALUSrc == 2'b00) ? reg1 :
+assign a = r0data;
+assign b = (ALUSrc == 2'b00) ? r1data :
            (ALUSrc == 2'b01) ? imm  :
            (ALUSrc == 2'b10) ? offset :
             16'h0001;
@@ -48,7 +47,7 @@ assign b = (ALUSrc == 2'b00) ? reg1 :
 assign addr = SPAddr ? r0data : result;
 assign data = PCToMem ? PC_inc : r1data;
 
-ALU alu(.a(reg0), .b(reg1), .operation(ALUOp), .shamt(imm[3:0]), .result(result),
+ALU alu(.a(a), .b(b), .operation(ALUOp), .shamt(imm[3:0]), .result(result),
     .zr(zr), .neg(neg), .ov(ov));
 
 // Insert forwarding module here
@@ -82,7 +81,7 @@ always @(*) begin
     XOR: result <= a ^ b;
     SLL: result <= a << shamt;
     SRL: result <= a >> shamt;
-    SRA: result <= {$signed(a) >> shamt};
+    SRA: result <= {$signed(a) >>> shamt};
     default: result = 16'h0000;
   endcase
 end

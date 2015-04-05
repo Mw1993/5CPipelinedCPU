@@ -24,7 +24,7 @@ wire re0, re1, hlt;
 
 wire RegWrite, MemRead, MemToReg, LoadStore, 
      MemWrite, ReadRd, PCToMem, SPToMem, SPAddr,
-     Branch, Ret;
+     Branch, Ret, LoadByte;
 wire [1:0] ALUSrc;
 
 assign PCcall = {PC_inc[15:12], addr};
@@ -41,8 +41,8 @@ assign addr   = instr[11:0]; // for call
 
 wire [3:0] ALUOp;
 
+assign r0_addr = LoadByte ? rd : (LoadStore ? 4'hE : rs);
 assign r1_addr = ReadRd    ? rd   : rt;
-assign r0_addr = LoadStore ? 4'hE : rs;
 assign re0 = 1;
 assign re1 = 1;
 assign hlt = 0;
@@ -50,10 +50,10 @@ rf regFile(.clk(clk),.p0_addr(r0_addr),.p1_addr(r1_addr),.p0(r0data),.p1(r1data)
            .dst_addr(rd),.dst(write_data),.we(RegWrite),.hlt(hlt));
 
 // Control logic
-control ctrl(.opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .MemRead(MemRead),
+control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .MemRead(MemRead),
              .MemToReg(MemToReg), .LoadStore(LoadStore), .MemWrite(MemWrite),
              .ALUOp(ALUOp), .ReadRd(ReadRd), .PCToMem(PCToMem), .SPToMem(SPToMem),
-             .Call(Call), .Branch(Branch), .Ret(Ret), .SPAddr(SPAddr),
+             .Call(Call), .Branch(Branch), .Ret(Ret), .SPAddr(SPAddr), .LoadByte(LoadByte),
              .Reg0Read(Reg0Read), .Reg1Read(Reg1Read), .Halt());
 
 assign EX = {PCToMem, SPAddr, ALUSrc, ALUOp};
@@ -62,14 +62,15 @@ assign WB = {Ret, MemToReg};
 
 endmodule
 
-module control(opcode, RegWrite, ALUSrc, MemRead, MemToReg, LoadStore,
+module control(rst, opcode, RegWrite, ALUSrc, MemRead, MemToReg, LoadStore,
                MemWrite, ALUOp, ReadRd, PCToMem, SPToMem, SPAddr,
-               Call, Branch, Ret, Reg0Read, Reg1Read, Halt);
+               Call, Branch, Ret, LoadByte, Reg0Read, Reg1Read, Halt);
 
+input rst;
 input  [3:0] opcode;
 output reg [1:0] ALUSrc;
 output reg RegWrite, MemRead, MemToReg, LoadStore, MemWrite, ReadRd, PCToMem,
-       SPToMem, SPAddr, Call, Branch, Ret;
+       SPToMem, SPAddr, Call, Branch, Ret, LoadByte;
 output reg Reg0Read, Reg1Read, Halt;
 output [3:0] ALUOp;
 
@@ -78,7 +79,7 @@ typedef enum bit [3:0] { ADD = 4'h0, SUB = 4'h1, NAND = 4'h2, XOR = 4'h3,
                    SW = 4'h9, LHB = 4'hA, LLB = 4'hB, B = 4'hC, CALL = 4'hD,
                    RET = 4'hE, FLUSH = 4'hF } opcd;
 opcd opcod;
-assign opcod = opcd'(opcode);
+assign opcod = rst ? FLUSH : opcd'(opcode);
 logic [3:0] ALUOp;
 
 always @(*) begin
@@ -98,6 +99,7 @@ always @(*) begin
   Call = 0;
   Branch = 0;
   Ret = 0;
+  LoadByte = 0;
   case(opcod)
     ADD, SUB, NAND, XOR: begin
       RegWrite = 1;
@@ -132,6 +134,7 @@ always @(*) begin
       ALUOp = opcode;
       ReadRd = 1;
       Reg1Read = 0;
+      LoadByte = 1;
     end B: begin
       Reg0Read = 0;
       Reg1Read = 0;
