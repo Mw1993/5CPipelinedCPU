@@ -1,24 +1,24 @@
 // Maggie White and Taylor Shoenborn
-module EX_slice(clk, rst, WB_in, M_in, EX, r0data, r1data, rt, rd, imm, offset,
-                addr, data, result, flags, PCcall_in, PCcall, PCbranch, Call, WB, M);
+module EX_slice(clk, rst, WB_in, M_in, EX, PC_inc, r0data, r1data, bcond_in, rt, rd, imm, offset,
+                addr, data, result, flags, PCbranch, bcond, WB, M);
 
 input clk, rst;
-input WB_in;
-input [1:0] M_in;
-input [8:0] EX;
+input [1:0] WB_in;
+input [2:0] M_in;
+input [7:0] EX;
 input [15:0] PC_inc;
 input [15:0] r0data, r1data;
 input [3:0] rt, rd;
+input [2:0] bcond_in;
 input [15:0] imm, offset;
-input [15:0] PCcall_in;
 output [15:0] addr, data, result;
 output [2:0] flags;//zero, neg, overflow;
-output [15:0] PCcall, PCbranch;
-output Call;
+output [15:0] PCbranch;
+output [2:0] bcond;
 output [1:0] WB;
 output [2:0] M;
 
-wire [2:0] ALUOp;
+wire [3:0] ALUOp;
 wire [3:0] shamt;
 wire [1:0] ALUSrc;
 
@@ -31,11 +31,10 @@ assign ALUOp = EX[3:0];
 assign ALUSrc = EX[5:4];
 assign SPAddr = EX[6];
 assign PCToMem = EX[7];
-assign Call = EX[8];
 
-assign PCcall = PCcall_in;
 assign PCbranch = PC_inc + offset + 1;
 
+assign bcond = bcond_in;
 assign WB = WB_in;
 assign M = M_in;
 assign flags = {zr, neg, ov};
@@ -45,6 +44,9 @@ assign b = (ALUSrc == 2'b00) ? reg1 :
            (ALUSrc == 2'b01) ? imm  :
            (ALUSrc == 2'b10) ? offset :
             16'h0001;
+
+assign addr = SPAddr ? r0data : result;
+assign data = PCToMem ? PC_inc : r1data;
 
 ALU alu(.a(reg0), .b(reg1), .operation(ALUOp), .shamt(imm[3:0]), .result(result),
     .zr(zr), .neg(neg), .ov(ov));
@@ -64,9 +66,11 @@ output zr, neg, ov;
 wire [7:0] s0, s1, s2;
 wire asign, bsign, shift;
 
-enum logic [3:0] { ADD = 4'h0, SUB = 4'h1, NAND = 4'h2, XOR = 4'h3,
+typedef enum logic [3:0] { ADD = 4'h0, SUB = 4'h1, NAND = 4'h2, XOR = 4'h3,
                    SRA = 4'h5, SRL = 4'h6, SLL  = 4'h7, LHB = 4'hA,
-                   LLB = 4'hB } ALUOp;
+                   LLB = 4'hB } opcode;
+opcode ALUOp;
+assign ALUOp = opcode'(operation);
 
 always @(*) begin
   case(operation)
