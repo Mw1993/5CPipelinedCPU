@@ -12,7 +12,7 @@ output [15:0] instr;
 reg [15:0] PC;
 wire [15:0] tmpPC, tmpPC_inc;
 
-assign tmpPC_inc = PC + 1;
+assign PC_inc = PC + 1;
 assign tmpPC = Call ? PCcall : 
                Branch ? PCbranch : 
                Ret ? PCret :
@@ -25,10 +25,6 @@ always @(posedge clk, posedge rst) begin
     PC <= PC;
   else
     PC <= tmpPC;
-end
-
-always @(negedge clk) begin
-  PC_inc <= tmpPC_inc;
 end
 
 IM instMem (.clk(clk),.addr(PC),.rd_en(!rst),.instr(instr));

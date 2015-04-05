@@ -33,12 +33,12 @@ wire [2:0] flags_EXMEM;
 // MEM ports
 wire [15:0] rdata;
 
-wire stall;
+wire stall; // sent by ID/control, received by everyone else
 
 IF_slice IF(.clk(clk), .rst(rst), .stall(stall), .Call(Call), .PCcall(PCcall),
          .Branch(Branch), .PCbranch(PCbranch), .Ret(Ret),  .PCret(PCret), .PC_inc(PC_inc_IFID), .instr(instr_IFID));
 
-ID_slice ID(.clk(clk), .rst(rst), .PC_inc_in(PC_inc_IFID), .instr(instr_IFID),
+ID_slice ID(.clk(clk), .rst(rst), .stall(stall), .PC_inc_in(PC_inc_IFID), .instr_in(instr_IFID),
          .write_data(write_data_WB), .PC_inc(PC_inc_IDEX), .r0data(r0data),
          .r1data(r1data), .imm(imm_IDEX), .offset(offset_IDEX), .PCcall(PCcall), .Call(Call),
          .rs(rs), .rt(rt), .rd(rd), .bcond(bcond_IDEX), .EX(EX_IDEX), .M(M_IDEX), .WB(WB_IDEX));
@@ -48,15 +48,15 @@ EX_slice EX(.clk(clk), .rst(rst), .WB_in(WB_IDEX), .M_in(M_IDEX), .EX(EX_IDEX),
          .rt(rt), .rd(rd), .imm(imm_IDEX), .offset(offset_IDEX),
          .addr(addr_EXMEM), .data(data_EXMEM), .result(ALU_EXMEM),
          .flags(flags_EXMEM), .PCbranch(PCbranch_EXMEM), .bcond(bcond_EXMEM),
-         .WB(WB_EXMEM), .M(M_EXMEM));
+         .stall(stall), .WB(WB_EXMEM), .M(M_EXMEM));
 
-MEM_slice MEM(.clk(clk), .rst(rst), .M(M_EXMEM), .WB_in(WB_EXMEM),
+MEM_slice MEM(.clk(clk), .rst(rst), .stall(stall), .M(M_EXMEM), .WB_in(WB_EXMEM),
           .flags_in(flags_EXMEM), .addr(addr_EXMEM), .bcond(bcond_EXMEM), .wdata(data_EXMEM),
           .PCbranch_in(PCbranch_EXMEM), .ALU_in(ALU_EXMEM),
           .rdata(rdata), .PCbranch(PCbranch), .PCret(PCret_MEMWB), .ALU(ALU_MEMWB),
           .WB(WB_MEMWB), .Branch(Branch));
 
-WB_slice WB(.clk(clk), .rst(rst), .PCret_in(PCret_MEMWB), .WB(WB_MEMWB), .ALU(ALU_MEMWB), .MemData(rdata),
+WB_slice WB(.clk(clk), .rst(rst), .stall(stall), .PCret_in(PCret_MEMWB), .WB(WB_MEMWB), .ALU(ALU_MEMWB), .MemData(rdata),
          .RegData(write_data_WB), .Ret(Ret), .PCret(PCret));
 
 endmodule

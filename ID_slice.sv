@@ -1,9 +1,9 @@
 // Maggie White and Taylor Shoenborn
-module ID_slice(clk, rst, PC_inc_in, instr, write_data, PC_inc, r0data, r1data, imm,
-                offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB);
+module ID_slice(clk, rst, PC_inc_in, instr_in, write_data, PC_inc, r0data, r1data, imm,
+                offset, Call, PCcall, rs, rt, rd, bcond, stall, EX, M, WB);
 
 input clk, rst;
-input [15:0] PC_inc_in, instr, write_data;
+input [15:0] PC_inc_in, instr_in, write_data;
 
 output [15:0] PC_inc;
 output [15:0] r0data, r1data;
@@ -15,8 +15,9 @@ output [2:0] bcond; // branch condition
 output [8:0] EX;
 output [2:0] M;
 output [1:0] WB;
+output stall;
 
-reg [15:0] instr, write_data;
+reg [15:0] instr, PC_inc;
 wire [3:0] opcode;
 wire [3:0] r0_addr, r1_addr, dst_addr;
 wire [11:0] addr;
@@ -28,7 +29,11 @@ wire RegWrite, MemRead, MemToReg, LoadStore,
 wire [1:0] ALUSrc;
 
 assign PCcall = {PC_inc_in[15:12], addr};
-assign PC_inc = PC_inc_in;
+
+always @(posedge clk) begin
+  PC_inc <= PC_inc_in;
+  instr <= instr_in;
+end
 
 // Parts of instruction
 assign opcode = instr[15:12];

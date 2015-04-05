@@ -1,7 +1,7 @@
 // Maggie White and Taylor Shoenborn
-module WB_slice(clk, rst, PCret_in, WB, ALU, MemData, RegData, Ret, PCret);
+module WB_slice(clk, rst, stall, PCret_in, WB, ALU, MemData, RegData, Ret, PCret);
 
-input clk, rst;
+input clk, rst, stall;
 input [1:0] WB;
 input [15:0] PCret_in;
 input [15:0] ALU, MemData;

@@ -1,8 +1,8 @@
 // Maggie White and Taylor Shoenborn
-module MEM_slice(clk, rst, M, WB_in, flags_in, addr, bcond, wdata, PCbranch_in, ALU_in,
+module MEM_slice(clk, rst, stall, M, WB_in, flags_in, addr, bcond, wdata, PCbranch_in, ALU_in,
                  rdata, PCbranch, PCret, ALU, WB, Branch);
 
-input clk, rst;
+input clk, rst, stall;
 input [2:0] M;
 input [1:0] WB_in;
 input [2:0] flags_in, bcond;

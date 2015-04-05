@@ -1,8 +1,8 @@
 // Maggie White and Taylor Shoenborn
-module EX_slice(clk, rst, WB_in, M_in, EX, PC_inc, r0data, r1data, bcond_in, rt, rd, imm, offset,
+module EX_slice(clk, rst, stall, WB_in, M_in, EX, PC_inc, r0data, r1data, bcond_in, rt, rd, imm, offset,
                 addr, data, result, flags, PCbranch, bcond, WB, M);
 
-input clk, rst;
+input clk, rst, stall;
 input [1:0] WB_in;
 input [2:0] M_in;
 input [8:0] EX;

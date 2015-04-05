@@ -16,7 +16,7 @@ always @(addr,rd_en,clk)
     instr <= instr_mem[addr];
 
 initial begin
-  $readmemh("Control.hex",instr_mem);
+  $readmemh("BasicOp.hex",instr_mem);
 end
 
 endmodule
