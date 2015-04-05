@@ -5,7 +5,7 @@ module EX_slice(clk, rst, WB_in, M_in, EX, PC_inc, r0data, r1data, bcond_in, rt,
 input clk, rst;
 input [1:0] WB_in;
 input [2:0] M_in;
-input [7:0] EX;
+input [8:0] EX;
 input [15:0] PC_inc;
 input [15:0] r0data, r1data;
 input [3:0] rt, rd;
@@ -21,7 +21,7 @@ output [2:0] M;
 wire [3:0] ALUOp;
 wire [3:0] shamt;
 wire [1:0] ALUSrc;
-wire CallRet, PCToMem, SPAddr;
+wire CallRet, PCToMem, SPAddr, nArithInstr;
 
 wire zr, neg, ov;
 
@@ -31,6 +31,7 @@ assign ALUOp = EX[3:0];
 assign ALUSrc = EX[5:4];
 assign PCToMem = EX[6];
 assign SPAddr = EX[7];
+assign nArithInstr = EX[8];
 
 assign PCbranch = PC_inc + offset + 1;
 
@@ -48,15 +49,16 @@ assign b = (ALUSrc == 2'b00) ? r1data :
 assign addr = SPAddr ? r0data : result;
 assign data = PCToMem ? PC_inc : r1data;
 
-ALU alu(.a(a), .b(b), .operation(ALUOp), .shamt(imm[3:0]), .result(result),
+ALU alu(.nArithInstr(nArithInstr), .a(a), .b(b), .operation(ALUOp), .shamt(imm[3:0]), .result(result),
     .zr(zr), .neg(neg), .ov(ov));
 
 // Insert forwarding module here
 
 endmodule
 
-module ALU(a, b, operation, shamt, result, zr, neg, ov);
+module ALU(nArithInstr, a, b, operation, shamt, result, zr, neg, ov);
 
+input nArithInstr;
 input [15:0] a, b;
 input [3:0] operation;
 input [3:0] shamt;
@@ -64,7 +66,7 @@ output reg [15:0] result;
 output zr, neg, ov;
 
 wire [7:0] s0, s1, s2;
-wire asign, bsign, shift;
+wire asign, bsign, dnset;
 
 typedef enum logic [3:0] { ADD = 4'h0, SUB = 4'h1, NAND = 4'h2, XOR = 4'h3,
                    SRA = 4'h5, SRL = 4'h6, SLL  = 4'h7, LHB = 4'hA,
@@ -91,10 +93,15 @@ end
 assign bsign = (operation == SUB) ? ~b[15] : b[15];
 assign asign = a[15];
 
-assign shift = (operation == SLL || operation == SRL || operation == SRA);
+assign dnset = nArithInstr || (operation == SLL || operation == SRL || operation == SRA);
+assign addsub = ~(|operation[3:1]); // is the operation add or sub?
 
-assign ov = shift ? 1'b0 : (bsign && asign && !result[15]) || (!bsign && !asign && result[15]);
-assign zr = shift ? 1'b0 : ~|result;
-assign neg = shift ? 1'b0 : result[15];
+assign ov = dnset ? ov : // shift or non-arithmetic instruction, maintain value
+       !addsub ? 1'b0  : // if NAND/XOR, clear
+       (bsign && asign && !result[15]) || (!bsign && !asign && result[15]);
+assign zr = dnset ? zr : ~|result;
+assign neg = dnset ? neg : // shift or non-arithmetic instruction, maintain value
+             !addsub ? 1'b0 : // if NAND/XOR, clear
+             neg;
 
 endmodule

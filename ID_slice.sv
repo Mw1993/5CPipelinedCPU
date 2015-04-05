@@ -12,7 +12,7 @@ output [15:0] PCcall; // calculated address for call instruction
 output Call;
 output [3:0] rs, rt, rd;
 output [2:0] bcond; // branch condition
-output [7:0] EX;
+output [8:0] EX;
 output [2:0] M;
 output [1:0] WB;
 
@@ -61,7 +61,7 @@ control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .
              .Call(Call), .Branch(Branch), .Ret(Ret), .CallRet(CallRet), .LoadByte(LoadByte),
              .SPAddr(SPAddr), .Reg0Read(Reg0Read), .Reg1Read(Reg1Read), .Halt());
 
-assign EX = {SPAddr, PCToMem, ALUSrc, ALUOp};
+assign EX = {instr[15], SPAddr, PCToMem, ALUSrc, ALUOp};
 assign M = {Branch, MemWrite, MemRead};
 assign WB = {Ret, MemToReg};
 

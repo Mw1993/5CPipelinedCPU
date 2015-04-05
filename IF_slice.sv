@@ -13,7 +13,10 @@ reg [15:0] PC;
 wire [15:0] tmpPC, tmpPC_inc;
 
 assign tmpPC_inc = PC + 1;
-assign tmpPC = Call ? PCcall : (Branch ? PCbranch : (Ret ? PCret : PC_inc));
+assign tmpPC = Call ? PCcall : 
+               Branch ? PCbranch : 
+               Ret ? PCret :
+               PC_inc;
 
 always @(posedge clk, posedge rst) begin
   if(rst)

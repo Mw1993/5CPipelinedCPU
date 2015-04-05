@@ -26,7 +26,7 @@ wire [3:0] rs, rt, rd;
 wire [2:0] bcond_EXMEM, bcond_IDEX;
 wire [2:0] M_EXMEM, M_IDEX;
 wire [1:0] WB_EXMEM, WB_IDEX, WB_MEMWB;
-wire [7:0] EX_IDEX;
+wire [8:0] EX_IDEX;
 wire [15:0] addr_EXMEM, data_EXMEM;
 wire [2:0] flags_EXMEM;
 
