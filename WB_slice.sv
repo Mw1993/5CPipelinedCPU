@@ -1,5 +1,6 @@
 // Maggie White and Taylor Shoenborn
-module WB_slice(clk, rst, stall, PCret_in, WB_in, ALU_in, MemData_in, RegData, Ret, PCret, write_addr, RegWrite);
+module WB_slice(clk, rst, stall, PCret_in, WB_in, ALU_in, MemData_in, RegData,
+                Ret, PCret, write_addr, RegWrite);
 
 input clk, rst, stall;
 input [6:0] WB_in;

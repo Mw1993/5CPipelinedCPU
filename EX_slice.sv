@@ -1,20 +1,24 @@
 // Maggie White and Taylor Shoenborn
-module EX_slice(clk, rst, stall, WB_in, M_in, EX_in, PC_inc_in, r0data_in, r1data_in, bcond_in, rt_in, rd_in, imm_in, offset_in,
-                addr, data, result, flags, PCbranch, bcond, WB, M);
+module EX_slice(clk, rst, stall, WB_in, M_in, EX_in, PC_inc_in, PCbranch_in, 
+                r0data_in,
+                r1data_in, bcond_in, rt_in, rd_in, imm_in, offset_in,
+                flags_prv, addr, data, result, flags, PCbranch, Branch,
+                stall, WB, M);
 
 input clk, rst, stall;
 input [6:0] WB_in;
-input [2:0] M_in;
-input [8:0] EX_in;
-input [15:0] PC_inc_in;
+input [1:0] M_in;
+input [9:0] EX_in;
+input [15:0] PC_inc_in, PCbranch_in;
 input [15:0] r0data_in, r1data_in;
-input [3:0] rt_in, rd_in;
 input [2:0] bcond_in;
+input [3:0] rt_in, rd_in;
 input [15:0] imm_in, offset_in;
+input [2:0] flags_prv;
 output [15:0] addr, data, result;
 output [2:0] flags;//zero, neg, overflow
 output [15:0] PCbranch;
-output [2:0] bcond;
+output Branch;
 output [6:0] WB;
 output [2:0] M;
 
@@ -25,8 +29,8 @@ wire CallRet, PCToMem, SPAddr, nArithInstr;
 
 reg [6:0] WB;
 reg [2:0] M;
-reg [8:0] EX;
-reg [15:0] PC_inc;
+reg [9:0] EX;
+reg [15:0] PC_inc, PCbranch;
 reg [15:0] r0data, r1data;
 reg [3:0] rt, rd;
 reg [2:0] bcond;
@@ -41,8 +45,7 @@ assign ALUSrc = EX[5:4];
 assign PCToMem = EX[6];
 assign SPAddr = EX[7];
 assign nArithInstr = EX[8];
-
-assign PCbranch = PC_inc + offset + 1;
+assign binstr = EX[9];
 
 always @(posedge clk, posedge rst) begin
   if(rst) begin
@@ -50,6 +53,7 @@ always @(posedge clk, posedge rst) begin
     M <= 3'h0;
     EX <= 9'h0;
     PC_inc <= 16'h0000;
+    PCbranch <= 16'h0000;
     r0data <= 16'h0000;
     r1data <= 16'h0000;
     rt <= 4'h0;
@@ -62,6 +66,7 @@ always @(posedge clk, posedge rst) begin
     M <= M_in;
     EX <= EX_in;
     PC_inc <= PC_inc_in;
+    PCbranch <= PCbranch_in;
     r0data <= r0data_in;
     r1data <= r1data_in;
     rt <= rt_in;
@@ -82,11 +87,54 @@ assign b = (ALUSrc == 2'b00) ? r1data :
 assign addr = SPAddr ? r0data : result;
 assign data = PCToMem ? PC_inc : r1data;
 
+decideBranch db(.binstr(binstr), .bcond(bcond), .flags(flags_prv), .branch(Branch));
+
 ALU alu(.nArithInstr(nArithInstr), .a(a), .b(b), .operation(ALUOp), .shamt(imm[3:0]), .result(result),
     .zr(zr), .neg(neg), .ov(ov));
 
 // Insert forwarding module here
 
+endmodule
+
+module decideBranch(binstr, bcond, flags, branch);
+  input binstr;
+  input [2:0] bcond, flags;
+  
+  output reg branch;
+  
+  wire binstr, zr, neg, ov;
+  
+  assign zr = flags[2];
+  assign neg = flags[1];
+  assign ov = flags[0];
+  
+  typedef enum bit [2:0] {EQ = 3'h0, LT = 3'h1, GT = 3'h2, OV = 3'h3, NE = 3'h4, GE = 3'h5,
+                  LE = 3'h6, UNCOND = 3'h7} cond;
+  cond ebcond;
+  assign ebcond = cond'(bcond);
+  always @(*) begin
+    branch = 0; //default
+    if(binstr) begin 
+        case(ebcond)
+          EQ:
+            if(zr) branch = 1;
+          LT:
+            if(neg && !ov) branch = 1;
+          GT:
+            if(!neg && !ov && !zr) branch = 1;
+          OV:
+            if(ov) branch = 1;
+          NE:
+            if(!zr) branch = 1;
+          GE:
+            if(!neg & ov) branch = 1;
+          LE:
+            if((neg & ov) | zr) branch = 1;
+          UNCOND:
+            branch = 1;
+        endcase
+    end
+end
 endmodule
 
 module ALU(nArithInstr, a, b, operation, shamt, result, zr, neg, ov);

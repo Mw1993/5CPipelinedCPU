@@ -1,21 +1,22 @@
 // Maggie White and Taylor Shoenborn
-module ID_slice(clk, rst, PC_inc_in, instr_in, write_addr, write_data, RegWrite_in, PC_inc, r0data, r1data, imm,
-                offset, Call, PCcall, rs, rt, rd, bcond, stall, EX, M, WB);
+module ID_slice(clk, rst, PC_inc_in, instr_in, write_addr, write_data,
+                RegWrite_in, PC_inc, PCbranch, r0data, r1data, imm,
+                offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB, stall);
 
 input clk, rst;
 input [15:0] PC_inc_in, instr_in, write_data;
 input [3:0] write_addr;
 input RegWrite_in;
 
-output [15:0] PC_inc;
+output [15:0] PC_inc, PCbranch;
 output [15:0] r0data, r1data;
 output [15:0] imm, offset;
-output [15:0] PCcall; // calculated address for call instruction
 output Call;
+output [15:0] PCcall; // calculated address for call instruction
 output [3:0] rs, rt, rd;
 output [2:0] bcond; // branch condition
-output [8:0] EX;
-output [2:0] M;
+output [9:0] EX;
+output [1:0] M;
 output [6:0] WB;
 output stall;
 
@@ -31,6 +32,7 @@ wire RegWrite, MemRead, MemToReg, LoadStore,
 wire [1:0] ALUSrc;
 
 assign PCcall = {PC_inc_in[15:12], addr};
+assign PCbranch = PC_inc + offset + 1;
 
 always @(posedge clk, posedge rst) begin
   if(rst) begin
@@ -73,8 +75,8 @@ control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .
              .Call(Call), .Branch(Branch), .Ret(Ret), .CallRet(CallRet), .LoadByte(LoadByte),
              .SPAddr(SPAddr), .Reg0Read(Reg0Read), .Reg1Read(Reg1Read), .Halt());
 
-assign EX = {instr[15], SPAddr, PCToMem, ALUSrc, ALUOp};
-assign M = {Branch, MemWrite, MemRead};
+assign EX = {Branch, instr[15], SPAddr, PCToMem, ALUSrc, ALUOp};
+assign M = {MemWrite, MemRead};
 assign WB = {dst_addr, RegWrite, Ret, MemToReg};
 
 endmodule
