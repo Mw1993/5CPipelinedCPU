@@ -1,13 +1,15 @@
 // Maggie White and Taylor Shoenborn
-module ID_slice(clk, rst, PC_inc_in, instr_in, write_addr, write_data,
-                RegWrite_in, PC_inc, PCbranch, r0data, r1data, imm,
-                offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB, stall);
+module ID_slice(clk, rst, ID_Dwrite, flush, stall, PC_inc_in, instr_in, write_addr, write_data,
+                RegWrite_in, instr, PC_inc, PCbranch, r0data, r1data, imm,
+                offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB);
 
 input clk, rst;
+input ID_Dwrite, flush, stall;
 input [15:0] PC_inc_in, instr_in, write_data;
 input [3:0] write_addr;
 input RegWrite_in;
 
+output [15:0] instr; // for hazard detection
 output [15:0] PC_inc, PCbranch;
 output [15:0] r0data, r1data;
 output [15:0] imm, offset;
@@ -18,7 +20,6 @@ output [2:0] bcond; // branch condition
 output [9:0] EX;
 output [1:0] M;
 output [6:0] WB;
-output stall;
 
 reg [15:0] instr, PC_inc;
 wire [3:0] opcode;

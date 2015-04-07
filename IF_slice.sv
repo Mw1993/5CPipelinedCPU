@@ -1,9 +1,10 @@
 // Maggie White and Taylor Shoenborn
-module IF_slice(clk, rst, stall, Call, PCcall, Branch, PCbranch, Ret, PCret,
+module IF_slice(clk, rst, stall, flush, Call, PCcall, Branch, PCbranch, Ret, PCret,
                 PC_inc, instr);
 
 input clk, rst;
 input stall;
+input flush;
 input Call, Branch, Ret;
 input [15:0] PCcall, PCbranch, PCret; // ALU output, Mem output
 output reg [15:0] PC_inc;

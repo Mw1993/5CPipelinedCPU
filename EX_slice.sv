@@ -3,9 +3,10 @@ module EX_slice(clk, rst, stall, WB_in, M_in, EX_in, PC_inc_in, PCbranch_in,
                 r0data_in,
                 r1data_in, bcond_in, rt_in, rd_in, imm_in, offset_in,
                 flags_prv, addr, data, result, flags, PCbranch, Branch,
-                WB, M);
+                WB, M, flush);
 
-input clk, rst, stall;
+input clk, rst;
+input stall;
 input [6:0] WB_in;
 input [1:0] M_in;
 input [9:0] EX_in;
@@ -21,6 +22,7 @@ output [15:0] PCbranch;
 output Branch;
 output [6:0] WB;
 output [1:0] M;
+output [4:0] flush;
 
 wire [3:0] ALUOp;
 wire [3:0] shamt;
