@@ -1,3 +1,4 @@
+// Maggie White and Taylor Schoenborn
 module hazard_detection(instr, stall, ID_Dwrite, ID_flush);
 
 input [15:0] instr; // obtained from ID stage

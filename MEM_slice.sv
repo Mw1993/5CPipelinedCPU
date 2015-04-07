@@ -1,4 +1,4 @@
-// Maggie White and Taylor Shoenborn
+// Maggie White and Taylor Schoenborn
 module MEM_slice(clk, rst, stall, flush, M_in, WB_in, flags_in, addr_in, 
                  wdata_in, ALU_in,
                  rdata, PCret, ALU, flags, WB);

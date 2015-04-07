@@ -1,4 +1,4 @@
-// Maggie White and Taylor Shoenborn
+// Maggie White and Taylor Schoenborn
 module ID_slice(clk, rst, ID_Dwrite, flush, stall, PC_inc_in, instr_in, write_addr, write_data,
                 RegWrite_in, instr, PC_inc, PCbranch, r0data, r1data, imm,
                 offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB);
@@ -98,8 +98,8 @@ typedef enum bit [3:0] { ADD = 4'h0, SUB = 4'h1, NAND = 4'h2, XOR = 4'h3,
                    INC = 4'h4, SRA = 4'h5, SRL = 4'h6, SLL  = 4'h7, LW = 4'h8,
                    SW = 4'h9, LHB = 4'hA, LLB = 4'hB, B = 4'hC, CALL = 4'hD,
                    RET = 4'hE, FLUSH = 4'hF } opcd;
-wire [3:0] opcod;
-assign opcod = rst ? FLUSH : opcode;
+opcd opcod;
+assign opcod = rst ? FLUSH : opcd'(opcode);
 logic [3:0] ALUOp;
 
 always @(*) begin

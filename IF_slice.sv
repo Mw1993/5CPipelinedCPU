@@ -1,4 +1,4 @@
-// Maggie White and Taylor Shoenborn
+// Maggie White and Taylor Schoenborn
 module IF_slice(clk, rst, stall, flush, Call, PCcall, Branch, PCbranch, Ret, PCret,
                 PC_inc, instr);
 

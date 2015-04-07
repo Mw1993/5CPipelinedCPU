@@ -1,3 +1,4 @@
+// Maggie White and Taylor Schoenborn
 module CPU(clk, rst, hlt);
 
 input clk, rst, hlt;

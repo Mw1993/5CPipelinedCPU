@@ -1,4 +1,4 @@
-// Maggie White and Taylor Shoenborn
+// Maggie White and Taylor Schoenborn
 module EX_slice(clk, rst, stall, WB_in, M_in, EX_in, PC_inc_in, PCbranch_in, 
                 r0data_in,
                 r1data_in, bcond_in, rt_in, rd_in, imm_in, offset_in,
