@@ -1,27 +1,36 @@
 // Maggie White and Taylor Shoenborn
-module EX_slice(clk, rst, stall, WB_in, M_in, EX, PC_inc, r0data, r1data, bcond_in, rt, rd, imm, offset,
+module EX_slice(clk, rst, stall, WB_in, M_in, EX_in, PC_inc_in, r0data_in, r1data_in, bcond_in, rt_in, rd_in, imm_in, offset_in,
                 addr, data, result, flags, PCbranch, bcond, WB, M);
 
 input clk, rst, stall;
-input [1:0] WB_in;
+input [6:0] WB_in;
 input [2:0] M_in;
-input [8:0] EX;
-input [15:0] PC_inc;
-input [15:0] r0data, r1data;
-input [3:0] rt, rd;
+input [8:0] EX_in;
+input [15:0] PC_inc_in;
+input [15:0] r0data_in, r1data_in;
+input [3:0] rt_in, rd_in;
 input [2:0] bcond_in;
-input [15:0] imm, offset;
+input [15:0] imm_in, offset_in;
 output [15:0] addr, data, result;
-output [2:0] flags;//zero, neg, overflow;
+output [2:0] flags;//zero, neg, overflow
 output [15:0] PCbranch;
 output [2:0] bcond;
-output [1:0] WB;
+output [6:0] WB;
 output [2:0] M;
 
 wire [3:0] ALUOp;
 wire [3:0] shamt;
 wire [1:0] ALUSrc;
 wire CallRet, PCToMem, SPAddr, nArithInstr;
+
+reg [6:0] WB;
+reg [2:0] M;
+reg [8:0] EX;
+reg [15:0] PC_inc;
+reg [15:0] r0data, r1data;
+reg [3:0] rt, rd;
+reg [2:0] bcond;
+reg [15:0] imm, offset;
 
 wire zr, neg, ov;
 
@@ -35,9 +44,33 @@ assign nArithInstr = EX[8];
 
 assign PCbranch = PC_inc + offset + 1;
 
-assign bcond = bcond_in;
-assign WB = WB_in;
-assign M = M_in;
+always @(posedge clk, posedge rst) begin
+  if(rst) begin
+    WB <= 7'h0;
+    M <= 3'h0;
+    EX <= 9'h0;
+    PC_inc <= 16'h0000;
+    r0data <= 16'h0000;
+    r1data <= 16'h0000;
+    rt <= 4'h0;
+    rd <= 4'h0;
+    bcond <= 3'h0;
+    imm <= 16'h0000;
+    offset <= 16'h0000;
+  end else begin
+    WB <= WB_in;
+    M <= M_in;
+    EX <= EX_in;
+    PC_inc <= PC_inc_in;
+    r0data <= r0data_in;
+    r1data <= r1data_in;
+    rt <= rt_in;
+    rd <= rd_in;
+    bcond <= bcond_in;
+    imm <= imm_in;
+    offset <= offset_in;
+  end
+end
 assign flags = {zr, neg, ov};
 
 assign a = r0data;

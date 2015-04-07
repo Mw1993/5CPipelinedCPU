@@ -1,9 +1,11 @@
 // Maggie White and Taylor Shoenborn
-module ID_slice(clk, rst, PC_inc_in, instr_in, write_data, PC_inc, r0data, r1data, imm,
+module ID_slice(clk, rst, PC_inc_in, instr_in, write_addr, write_data, RegWrite_in, PC_inc, r0data, r1data, imm,
                 offset, Call, PCcall, rs, rt, rd, bcond, stall, EX, M, WB);
 
 input clk, rst;
 input [15:0] PC_inc_in, instr_in, write_data;
+input [3:0] write_addr;
+input RegWrite_in;
 
 output [15:0] PC_inc;
 output [15:0] r0data, r1data;
@@ -14,7 +16,7 @@ output [3:0] rs, rt, rd;
 output [2:0] bcond; // branch condition
 output [8:0] EX;
 output [2:0] M;
-output [1:0] WB;
+output [6:0] WB;
 output stall;
 
 reg [15:0] instr, PC_inc;
@@ -30,9 +32,14 @@ wire [1:0] ALUSrc;
 
 assign PCcall = {PC_inc_in[15:12], addr};
 
-always @(posedge clk) begin
-  PC_inc <= PC_inc_in;
-  instr <= instr_in;
+always @(posedge clk, posedge rst) begin
+  if(rst) begin
+    PC_inc <= 16'h0000;
+    instr <= 16'h0000;
+  end else begin
+    PC_inc <= PC_inc_in;
+    instr <= instr_in;
+  end
 end
 
 // Parts of instruction
@@ -57,7 +64,7 @@ assign re0 = 1;
 assign re1 = 1;
 assign hlt = 0;
 rf regFile(.clk(clk),.p0_addr(r0_addr),.p1_addr(r1_addr),.p0(r0data),.p1(r1data),.re0(re0),.re1(re1),
-           .dst_addr(dst_addr),.dst(write_data),.we(RegWrite),.hlt(hlt));
+           .dst_addr(write_addr),.dst(write_data),.we(RegWrite_in),.hlt(hlt));
 
 // Control logic
 control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .MemRead(MemRead),
@@ -68,7 +75,7 @@ control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .
 
 assign EX = {instr[15], SPAddr, PCToMem, ALUSrc, ALUOp};
 assign M = {Branch, MemWrite, MemRead};
-assign WB = {Ret, MemToReg};
+assign WB = {dst_addr, RegWrite, Ret, MemToReg};
 
 endmodule
 
@@ -88,8 +95,8 @@ typedef enum bit [3:0] { ADD = 4'h0, SUB = 4'h1, NAND = 4'h2, XOR = 4'h3,
                    INC = 4'h4, SRA = 4'h5, SRL = 4'h6, SLL  = 4'h7, LW = 4'h8,
                    SW = 4'h9, LHB = 4'hA, LLB = 4'hB, B = 4'hC, CALL = 4'hD,
                    RET = 4'hE, FLUSH = 4'hF } opcd;
-opcd opcod;
-assign opcod = rst ? FLUSH : opcd'(opcode);
+wire [3:0] opcod;
+assign opcod = rst ? FLUSH : opcode;
 logic [3:0] ALUOp;
 
 always @(*) begin
