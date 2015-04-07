@@ -27,7 +27,7 @@ assign MemWrite = M[1];
 
 always @(posedge clk, posedge rst) begin
   if(rst) begin
-    M <= 3'h0;
+    M <= 2'h0;
     WB <= 7'h0;
     flags <= 3'h0;
     addr <= 16'h0000;

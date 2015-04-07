@@ -3,7 +3,7 @@ module EX_slice(clk, rst, stall, WB_in, M_in, EX_in, PC_inc_in, PCbranch_in,
                 r0data_in,
                 r1data_in, bcond_in, rt_in, rd_in, imm_in, offset_in,
                 flags_prv, addr, data, result, flags, PCbranch, Branch,
-                stall, WB, M);
+                WB, M);
 
 input clk, rst, stall;
 input [6:0] WB_in;
@@ -20,7 +20,7 @@ output [2:0] flags;//zero, neg, overflow
 output [15:0] PCbranch;
 output Branch;
 output [6:0] WB;
-output [2:0] M;
+output [1:0] M;
 
 wire [3:0] ALUOp;
 wire [3:0] shamt;
@@ -28,7 +28,7 @@ wire [1:0] ALUSrc;
 wire CallRet, PCToMem, SPAddr, nArithInstr;
 
 reg [6:0] WB;
-reg [2:0] M;
+reg [1:0] M;
 reg [9:0] EX;
 reg [15:0] PC_inc, PCbranch;
 reg [15:0] r0data, r1data;
@@ -50,8 +50,8 @@ assign binstr = EX[9];
 always @(posedge clk, posedge rst) begin
   if(rst) begin
     WB <= 7'h0;
-    M <= 3'h0;
-    EX <= 9'h0;
+    M <= 2'h0;
+    EX <= 10'h000;
     PC_inc <= 16'h0000;
     PCbranch <= 16'h0000;
     r0data <= 16'h0000;
