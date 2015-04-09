@@ -40,6 +40,9 @@ always @(posedge clk, posedge rst) begin
   if(rst) begin
     PC_inc <= 16'h0000;
     instr <= 16'h0000;
+  end else if (stall) begin
+    PC_inc <= PC_inc;
+    instr <= instr;
   end else begin
     PC_inc <= PC_inc_in;
     instr <= instr_in;

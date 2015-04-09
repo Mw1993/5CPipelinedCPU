@@ -5,5 +5,5 @@
 @0004 1211 // sub  R2, R1, R1 		#R2 <= 0x0000				//Forwarding R1 from llb in EX_MEM stage
 @0005 9205 // sw   R2, 0x05			#mem[11] <= 0x0000			//Forwarding R1 from llb in MEM_WB stage
 @0006 8305 // lw   R3, 0x05			#R3 <= mem[11] == 0x0000		//No forwarding needed
-@0006 0F13 // add  R15, R1, R3		#R15 <= 0x0006				//load-use 1 cycle stall - Forwarding R3 from lw in MEM_WB stage
-@0007 4AF4 // inc R10, R15, 0x04		#R10 <= 0x00aa				//Forwarding R15 from add in EX_MEM stage
+@0007 0F13 // add  R15, R1, R3		#R15 <= 0x0006				//load-use 1 cycle stall - Forwarding R3 from lw in MEM_WB stage
+@0008 4AF4 // inc R10, R15, 0x04		#R10 <= 0x000a				//Forwarding R15 from add in EX_MEM stage
