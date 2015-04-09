@@ -197,6 +197,6 @@ assign ov = dnset ? ov : // shift or non-arithmetic instruction, maintain value
 assign zr = dnset ? zr : ~|result;
 assign neg = dnset ? neg : // shift or non-arithmetic instruction, maintain value
              !addsub ? 1'b0 : // if NAND/XOR, clear
-             neg;
+             result[15];
 
 endmodule
