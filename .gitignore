@@ -11,3 +11,4 @@ reg_16bit.sv
 *.mpf
 *.zip
 defines.sv
+*.bak
