@@ -2,6 +2,7 @@
 module EX_slice(clk, rst, stall, WB_in, M_in, EX_in, PC_inc_in, PCbranch_in, 
                 r0data_in,
                 r1data_in, bcond_in, rt_in, rd_in, imm_in, offset_in,
+                fwd_reg0, fwd_reg1, ALU_prv, write_data_prvprv,
                 flags_prv, addr, data, result, flags, PCbranch, Branch,
                 WB, M, flush);
 
@@ -15,6 +16,8 @@ input [15:0] r0data_in, r1data_in;
 input [2:0] bcond_in;
 input [3:0] rt_in, rd_in;
 input [15:0] imm_in, offset_in;
+input [1:0] fwd_reg0, fwd_reg1;
+input [15:0] ALU_prv, write_data_prvprv;
 input [2:0] flags_prv;
 output [15:0] addr, data, result;
 output [2:0] flags;//zero, neg, overflow
@@ -27,7 +30,7 @@ output [4:0] flush;
 wire [3:0] ALUOp;
 wire [3:0] shamt;
 wire [1:0] ALUSrc;
-wire CallRet, PCToMem, SPAddr, nArithInstr;
+wire CallRet, PCToMem, SPAddr, nArithInstr, forward;
 
 reg [6:0] WB;
 reg [1:0] M;
@@ -40,7 +43,7 @@ reg [15:0] imm, offset;
 
 wire zr, neg, ov;
 
-reg [15:0] a, b;
+reg [15:0] a, b, r0data_fwd, r1data_fwd;
 
 assign ALUOp = EX[3:0];
 assign ALUSrc = EX[5:4];
@@ -80,14 +83,23 @@ always @(posedge clk, posedge rst) begin
 end
 assign flags = {zr, neg, ov};
 
-assign a = r0data;
-assign b = (ALUSrc == 2'b00) ? r1data :
+assign r0data_fwd = (fwd_reg0 == 2'b00) ? r0data :
+               (fwd_reg0 == 2'b01) ? ALU_prv : 
+               write_data_prvprv;
+
+assign r1data_fwd = (fwd_reg1 == 2'b00) ? r1data :
+               (fwd_reg1 == 2'b01) ? ALU_prv : 
+               write_data_prvprv;
+
+assign a = r0data_fwd;
+assign b = (ALUSrc == 2'b00) ? r1data_fwd :
            (ALUSrc == 2'b01) ? imm  :
            (ALUSrc == 2'b10) ? offset :
             16'h0001;
 
 assign addr = SPAddr ? r0data : result;
 assign data = PCToMem ? PC_inc : r1data;
+
 
 decideBranch db(.binstr(binstr), .bcond(bcond), .flags(flags_prv), .branch(Branch));
 

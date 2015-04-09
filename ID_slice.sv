@@ -1,7 +1,7 @@
 // Maggie White and Taylor Schoenborn
 module ID_slice(clk, rst, ID_Dwrite, flush, stall, PC_inc_in, instr_in, write_addr, write_data,
                 RegWrite_in, instr, PC_inc, PCbranch, r0data, r1data, imm,
-                offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB);
+                offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB, FWD);
 
 input clk, rst;
 input ID_Dwrite, flush, stall;
@@ -20,6 +20,7 @@ output [2:0] bcond; // branch condition
 output [9:0] EX;
 output [1:0] M;
 output [6:0] WB;
+output [13:0] FWD;
 
 reg [15:0] instr, PC_inc;
 wire [3:0] opcode;
@@ -79,6 +80,7 @@ control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .
 assign EX = {Branch, instr[15], SPAddr, PCToMem, ALUSrc, ALUOp};
 assign M = {MemWrite, MemRead};
 assign WB = {dst_addr, RegWrite, Ret, MemToReg};
+assign FWD = {MemToReg, RegWrite, dst_addr, r1_addr, r0_addr};
 
 endmodule
 
