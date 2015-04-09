@@ -1,6 +1,8 @@
+`timescale 1ns/1ns
 module CPU_tb();
 
 reg clk, rst, hlt;
+reg [7:0] cycleNum;
 
 initial clk = 0;
 always
@@ -15,4 +17,11 @@ always begin
   repeat(20) @(posedge clk);
 end
 
+always @(posedge clk, posedge rst) begin
+  if (rst) begin
+    cycleNum <= 8'h00;
+  end else begin
+    cycleNum <= cycleNum + 1;
+    end
+end
 endmodule

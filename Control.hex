@@ -3,7 +3,7 @@
 @0002 A100 // LHB R1, 0x00
 @0003 B105 // LLB R1, 0xAA		# R1=0x00AA
 @0004 C700 // B UNCOND, CONT		# branch to CONT1
-@0005 1011 // SUB R0, R1, R1		# R0=0
+@0005 1711 // SUB R7, R1, R1		# R0=0
 
 @0006 D00C // CONT: CALL FUNC		# call to function
 @0007 A400 // LHB R4, 0x00
