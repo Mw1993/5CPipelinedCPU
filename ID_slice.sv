@@ -1,15 +1,15 @@
 // Maggie White and Taylor Schoenborn
-module ID_slice(clk, rst, ID_Dwrite, flush, stall, PC_inc_in, instr_in, write_addr, write_data,
-                RegWrite_in, instr, PC_inc, PCbranch, r0data, r1data, imm,
+module ID_slice(clk, rst, ID_Dwrite, branch_in, stall, PC_inc_in, instr_in, write_addr, write_data,
+                RegWrite_in, cur_Ret, PC_inc, PCbranch, r0data, r1data, imm,
                 offset, Call, PCcall, rs, rt, rd, bcond, EX, M, WB, FWD);
 
 input clk, rst;
-input ID_Dwrite, flush, stall;
+input ID_Dwrite, branch_in, stall;
 input [15:0] PC_inc_in, instr_in, write_data;
 input [3:0] write_addr;
 input RegWrite_in;
 
-output [15:0] instr; // for hazard detection
+output cur_Ret; // for hazard detection
 output [15:0] PC_inc, PCbranch;
 output [15:0] r0data, r1data;
 output [15:0] imm, offset;
@@ -22,6 +22,8 @@ output [1:0] M;
 output [6:0] WB;
 output [13:0] FWD;
 
+reg BCR;
+reg cur_Ret; // branch call ret
 reg [15:0] instr, PC_inc;
 wire [3:0] opcode;
 wire [3:0] r0_addr, r1_addr, dst_addr;
@@ -35,17 +37,22 @@ wire [1:0] ALUSrc;
 
 assign PCcall = {PC_inc_in[15:12], addr};
 assign PCbranch = PC_inc + offset + 1;
+assign cur_Ret = Ret;
+assign tmpBCR = (branch_in || Call || Ret);
 
 always @(posedge clk, posedge rst) begin
   if(rst) begin
     PC_inc <= 16'h0000;
     instr <= 16'h0000;
+    BCR <= 1'b0;
   end else if (stall) begin
     PC_inc <= PC_inc;
     instr <= instr;
+    BCR <= BCR;
   end else begin
     PC_inc <= PC_inc_in;
     instr <= instr_in;
+    BCR <= tmpBCR;
   end
 end
 
@@ -70,7 +77,7 @@ assign dst_addr = CallRet  ? 4'hF : rd;
 assign re0 = 1;
 assign re1 = 1;
 assign hlt = 0;
-assign rst_ctrl = stall || rst;
+assign rst_ctrl = (stall || rst || BCR);
 rf regFile(.clk(clk),.p0_addr(r0_addr),.p1_addr(r1_addr),.p0(r0data),.p1(r1data),.re0(re0),.re1(re1),
            .dst_addr(write_addr),.dst(write_data),.we(RegWrite_in),.hlt(hlt));
 

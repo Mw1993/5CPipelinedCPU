@@ -14,7 +14,7 @@ always begin
   rst = 1;
   repeat(2) @(posedge clk);
   rst = 0;
-  repeat(20) @(posedge clk);
+  repeat(30) @(posedge clk);
 end
 
 always @(posedge clk, posedge rst) begin

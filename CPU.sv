@@ -21,6 +21,7 @@ wire [9:0] EX_IDEX;
 wire [15:0] addr_EXMEM, data_EXMEM;
 wire [2:0] flags_EXMEM, flags_MEMEX;
 wire [1:0] r0_fwd, r1_fwd;
+wire [3:0] opcode;
 
 // MEM ports
 wire [15:0] rdata;
@@ -32,17 +33,17 @@ wire ID_flush, hd_ID_flush;
 assign ID_flush = hd_ID_flush || flush[3];
 
 // some of these signals are not connected to anything, see figure 4.66 for reference
-hazard_detection HD(.instr(instr_ID), .stall(stall), .dataDep(dataDep), .ID_Dwrite(ID_Dwrite), .ID_flush(hd_ID_flush));
+hazard_detection HD(.clk(clk), .rst(rst), .dataDep(dataDep), .cur_Ret(cur_Ret), .stall(stall));
 
 data_forwarding  DF(.clk(clk), .rst(rst), .FWD_in(FWD), .r0_fwd(r0_fwd), .r1_fwd(r1_fwd), .dataDep(dataDep));
 
-IF_slice IF(.clk(clk), .rst(rst), .stall(stall), .flush(flush[4]), .Call(Call), .PCcall(PCcall),
+IF_slice IF(.clk(clk), .rst(rst), .stall(stall), .flush(flush[4]), .CallRet(CallRet), .Call(Call), .PCcall(PCcall),
          .Branch(Branch), .PCbranch(PCbranch), .Ret(Ret),  .PCret(PCret), .PC_inc(PC_inc_IFID), .instr(instr_IFID));
 
-ID_slice ID(.clk(clk), .rst(rst), .ID_Dwrite(ID_Dwrite), .flush(ID_flush), .stall(stall),
+ID_slice ID(.clk(clk), .rst(rst), .ID_Dwrite(ID_Dwrite), .branch_in(Branch), .stall(stall),
             .PC_inc_in(PC_inc_IFID), .instr_in(instr_IFID),
-           .write_addr(write_addr), .write_data(write_data_WB), .RegWrite_in(RegWrite), .instr(instr_ID),
-           .PC_inc(PC_inc_IDEX),
+           .write_addr(write_addr), .write_data(write_data_WB), .RegWrite_in(RegWrite),
+           .cur_Ret(cur_Ret), .PC_inc(PC_inc_IDEX),
            .PCbranch(PCbranch_IDEX), .r0data(r0data),
            .r1data(r1data), .imm(imm_IDEX), .offset(offset_IDEX), .Call(Call), .PCcall(PCcall),
            .rs(rs), .rt(rt), .rd(rd), .bcond(bcond_IDEX), .EX(EX_IDEX),
