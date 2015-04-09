@@ -8,8 +8,9 @@ output reg stall;
 output ID_Dwrite; // inverse of stall?
 output ID_flush;
 
-assign stall = 0;
+assign stall = dataDep;
 assign ID_Dwrite = 0;
 assign ID_flush = 0;
+
 
 endmodule

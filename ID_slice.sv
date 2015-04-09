@@ -67,11 +67,12 @@ assign dst_addr = CallRet  ? 4'hF : rd;
 assign re0 = 1;
 assign re1 = 1;
 assign hlt = 0;
+assign rst_ctrl = stall || rst;
 rf regFile(.clk(clk),.p0_addr(r0_addr),.p1_addr(r1_addr),.p0(r0data),.p1(r1data),.re0(re0),.re1(re1),
            .dst_addr(write_addr),.dst(write_data),.we(RegWrite_in),.hlt(hlt));
 
 // Control logic
-control ctrl(.rst(rst), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .MemRead(MemRead),
+control ctrl(.rst(rst_ctrl), .opcode(opcode), .RegWrite(RegWrite), .ALUSrc(ALUSrc), .MemRead(MemRead),
              .MemToReg(MemToReg), .LoadStore(LoadStore), .MemWrite(MemWrite),
              .ALUOp(ALUOp), .ReadRd(ReadRd), .PCToMem(PCToMem), .SPToMem(SPToMem),
              .Call(Call), .Branch(Branch), .Ret(Ret), .CallRet(CallRet), .LoadByte(LoadByte),

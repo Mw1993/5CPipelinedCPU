@@ -84,12 +84,12 @@ end
 assign flags = {zr, neg, ov};
 
 assign r0data_fwd = (fwd_reg0 == 2'b00) ? r0data :
-               (fwd_reg0 == 2'b01) ? ALU_prv : 
-               write_data_prvprv;
+                    (fwd_reg0 == 2'b01) ? ALU_prv : 
+                     write_data_prvprv;
 
 assign r1data_fwd = (fwd_reg1 == 2'b00) ? r1data :
-               (fwd_reg1 == 2'b01) ? ALU_prv : 
-               write_data_prvprv;
+                    (fwd_reg1 == 2'b01) ? ALU_prv : 
+                     write_data_prvprv;
 
 assign a = r0data_fwd;
 assign b = (ALUSrc == 2'b00) ? r1data_fwd :
@@ -98,7 +98,7 @@ assign b = (ALUSrc == 2'b00) ? r1data_fwd :
             16'h0001;
 
 assign addr = SPAddr ? r0data : result;
-assign data = PCToMem ? PC_inc : r1data;
+assign data = PCToMem ? PC_inc : r1data_fwd;
 
 
 decideBranch db(.binstr(binstr), .bcond(bcond), .flags(flags_prv), .branch(Branch));

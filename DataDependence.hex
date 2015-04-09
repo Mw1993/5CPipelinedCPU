@@ -7,5 +7,5 @@
 @0006 0214 // add R2, R1, R4 		#R2 <= 0x000C 					//Forwarding R1 from sub in EX_MEM and R4 from add in MEM_WB
 @0007 9101 // sw R1, 0x01 		#mem[1] <= 0x0000 				//No forwarding needed
 @0008 8201 // lw R2, 0x01 		#R2 <= mem[1] == 0x0000 			//No forwarding needed
-@0009 9207 // sw R2, 0x07 		#mem[7] <= 0x0000				//No forwarding needed
+@0009 9207 // sw R2, 0x07 		#mem[7] <= 0x0000			//No forwarding needed
 @000A 8307 // lw R3, 0x07		#R3 <= mem[7] == 0x0000				//No forwarding needed

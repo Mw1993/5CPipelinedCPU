@@ -26,21 +26,20 @@ always @(posedge clk, posedge rst) begin
   end
 end
 
-assign doublewrite = (write_addr[7:4] == write_addr[3:0]);
+assign doublewrite = ((write_addr[7:4] == write_addr[3:0]) && (&RegWrite));
+assign dataDep = ((FWD[12] && FWD[13]) && 
+                  ((FWD_in[3:0] == FWD_in[3:0]) || (FWD_in[7:4] == FWD_in[3:0])));
 
 always @(*) begin
   r0_fwd = 2'b00;
   r1_fwd = 2'b00;
-  dataDep = 0;
-  if(RegWrite[1]) begin   // last instruction writes to a register
-    if(MemToReg[1]) begin // last instruction writes to reg from memory
+  if(RegWrite[0]) begin   // last instruction writes to a register
+    if(MemToReg[0]) begin // last instruction writes to reg from memory
       if(FWD[3:0] == write_addr[3:0]) begin
         r0_fwd = 2'b10; // still needs one cycle of stall
-        dataDep = 1;
       end
       if(FWD[7:4] == write_addr[3:0]) begin
         r1_fwd = 2'b10; // still needs one cycle of stall
-        dataDep = 1;
       end
     end else begin
       if(FWD[3:0] == write_addr[3:0]) begin
