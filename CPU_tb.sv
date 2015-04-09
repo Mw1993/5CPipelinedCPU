@@ -19,7 +19,7 @@ end
 
 always @(posedge clk, posedge rst) begin
   if (rst) begin
-    cycleNum <= 8'h00;
+    cycleNum <= 8'h01;
   end else begin
     cycleNum <= cycleNum + 1;
     end
