@@ -180,7 +180,7 @@ always @(*) begin
     SLL: result <= a << shamt;
     SRL: result <= a >> shamt;
     SRA: result <= {$signed(a) >>> shamt};
-    default: result = 16'h0000;
+    default: result <= 16'h0000;
   endcase
 end
 
