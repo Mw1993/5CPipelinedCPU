@@ -28,6 +28,8 @@ wire [15:0] rdata;
 
 wire stall; // sent by hazard detection unit, received by IF & ID
 
+wire dataDep, cur_ret, CallRet, Call, Branch, Ret, ID_Dwrite, RegWrite;
+
 wire [4:0] flush; // sent by EX slice after branch decision is made (assume not taken)
 wire ID_flush, hd_ID_flush;
 assign ID_flush = hd_ID_flush || flush[3];
