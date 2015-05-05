@@ -33,7 +33,7 @@ assign we_filt = we & we_del;
 always @(clk or we_filt or negedge rst_n)
   if (!rst_n)
     for (x=0; x<8;  x = x + 1)
-	  mem[x] = {2'b00,{75{1’bx}}};		// only valid & dirty bit are cleared, all others are x
+	  mem[x] = {2'b00,{75{1'bx}}};		// only valid & dirty bit are cleared, all others are x
   else if (~clk && we_filt)
     mem[addr[2:0]] = {1'b1,wdirty,addr[13:3],wr_data};
 
